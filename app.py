@@ -1,6 +1,7 @@
 import io
 import os
 from PIL import Image
+from PIL import ImageOps
 import tornado.escape
 import tornado.ioloop
 import tornado.web
@@ -46,6 +47,7 @@ class ApiSimplify(tornado.web.RequestHandler):
     self.set_header("Content-type",  "image/png")
     data = Image.open(io.BytesIO(requested_file['body'])).convert('L')
     data.thumbnail((600, 600))
+    data = ImageOps.autocontrast(data)
     img = yield simplify(data)
     pil = transforms.ToPILImage()(img)
     pil.save(fobj, format="png")
