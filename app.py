@@ -1,3 +1,4 @@
+#encoding: utf-8
 import io
 import os
 from PIL import Image
@@ -46,6 +47,7 @@ class ApiSimplify(tornado.web.RequestHandler):
 
     self.set_header("Content-type",  "image/png")
     data = Image.open(io.BytesIO(requested_file['body'])).convert('L')
+    # 処理速度の都合上短辺を600pxと制限する
     data.thumbnail((600, 600))
     data = ImageOps.autocontrast(data)
     img = yield simplify(data)
