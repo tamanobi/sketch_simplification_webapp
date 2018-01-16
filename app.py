@@ -56,8 +56,7 @@ class ApiSimplify(tornado.web.RequestHandler):
 
 class Index(tornado.web.RequestHandler):
   def get(self):
-    name = self.get_argument('name', 'World')
-    self.render('index.html', name=name)
+    self.render('index.html')
 
 
 application = tornado.web.Application([
