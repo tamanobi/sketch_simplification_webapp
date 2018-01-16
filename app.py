@@ -12,6 +12,7 @@ from torchvision import transforms
 from torchvision.utils import save_image
 from torch.utils.serialization import load_lua
 import cStringIO as StringIO
+import imghdr
 
 use_cuda = torch.cuda.device_count() > 0
 
@@ -43,16 +44,21 @@ class ApiSimplify(tornado.web.RequestHandler):
   @gen.coroutine
   def post(self):
     requested_file = self.request.files['file'][0]
-    fobj = StringIO.StringIO()
+    f = io.BytesIO(requested_file['body'])
+    ftype = imghdr.what(f)
+    if (ftype != 'jpeg' and ftype != 'png'):
+        self.send_error(status_code=400)
+        return
 
-    self.set_header("Content-type",  "image/png")
-    data = Image.open(io.BytesIO(requested_file['body'])).convert('L')
+    data = Image.open(f).convert('L')
     # 処理速度の都合上短辺を600pxと制限する
     data.thumbnail((600, 600))
     data = ImageOps.autocontrast(data)
     img = yield simplify(data)
     pil = transforms.ToPILImage()(img)
+    fobj = StringIO.StringIO()
     pil.save(fobj, format="png")
+    self.set_header("Content-type",  "image/png")
     for line in fobj.getvalue():
         self.write(line)
 
